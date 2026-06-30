@@ -6,47 +6,47 @@
 
 /* ── Plant Database ── */
 const plantDatabase = [
-  { name: "Monstera",      category: "Indoor Plants",    sunlight: "Indirect Light" },
-  { name: "Aloe Vera",     category: "Succulents",       sunlight: "Direct Sun" },
-  { name: "Snake Plant",   category: "Indoor Plants",    sunlight: "Low Light" },
-  { name: "Tomato",        category: "Fruits",           sunlight: "Direct Sun" },
-  { name: "Rose",          category: "Flowering Plants", sunlight: "Direct Sun" },
-  { name: "Money Plant",   category: "Indoor Plants",    sunlight: "Indirect Light" },
-  { name: "Tulsi",         category: "Herbs",            sunlight: "Direct Sun" },
-  { name: "Mint",          category: "Herbs",            sunlight: "Direct Sun" },
-  { name: "Jasmine",       category: "Flowering Plants", sunlight: "Direct Sun" },
-  { name: "Hibiscus",      category: "Flowering Plants", sunlight: "Direct Sun" },
-  { name: "Marigold",      category: "Flowering Plants", sunlight: "Direct Sun" },
-  { name: "Curry Leaves",  category: "Herbs",            sunlight: "Direct Sun" },
-  { name: "Chili",         category: "Vegetables",       sunlight: "Direct Sun" },
-  { name: "Jade Plant",    category: "Succulents",       sunlight: "Direct Sun" },
-  { name: "Lucky Bamboo",  category: "Indoor Plants",    sunlight: "Indirect Light" }
+  { name: "Monstera", category: "Indoor Plants", sunlight: "Indirect Light" },
+  { name: "Aloe Vera", category: "Succulents", sunlight: "Direct Sun" },
+  { name: "Snake Plant", category: "Indoor Plants", sunlight: "Low Light" },
+  { name: "Tomato", category: "Fruits", sunlight: "Direct Sun" },
+  { name: "Rose", category: "Flowering Plants", sunlight: "Direct Sun" },
+  { name: "Money Plant", category: "Indoor Plants", sunlight: "Indirect Light" },
+  { name: "Tulsi", category: "Herbs", sunlight: "Direct Sun" },
+  { name: "Mint", category: "Herbs", sunlight: "Direct Sun" },
+  { name: "Jasmine", category: "Flowering Plants", sunlight: "Direct Sun" },
+  { name: "Hibiscus", category: "Flowering Plants", sunlight: "Direct Sun" },
+  { name: "Marigold", category: "Flowering Plants", sunlight: "Direct Sun" },
+  { name: "Curry Leaves", category: "Herbs", sunlight: "Direct Sun" },
+  { name: "Chili", category: "Vegetables", sunlight: "Direct Sun" },
+  { name: "Jade Plant", category: "Succulents", sunlight: "Direct Sun" },
+  { name: "Lucky Bamboo", category: "Indoor Plants", sunlight: "Indirect Light" }
 ];
 
 /* Plant emoji map */
 const plantEmojis = {
-  "Monstera":     "🌿",
-  "Aloe Vera":    "🌵",
-  "Snake Plant":  "🪴",
-  "Tomato":       "🍅",
-  "Rose":         "🌹",
-  "Money Plant":  "💚",
-  "Tulsi":        "🌿",
-  "Mint":         "🌱",
-  "Jasmine":      "🌸",
-  "Hibiscus":     "🌺",
-  "Marigold":     "🌼",
+  "Monstera": "🌿",
+  "Aloe Vera": "🌵",
+  "Snake Plant": "🪴",
+  "Tomato": "🍅",
+  "Rose": "🌹",
+  "Money Plant": "💚",
+  "Tulsi": "🌿",
+  "Mint": "🌱",
+  "Jasmine": "🌸",
+  "Hibiscus": "🌺",
+  "Marigold": "🌼",
   "Curry Leaves": "🍃",
-  "Chili":        "🌶️",
-  "Jade Plant":   "🪴",
+  "Chili": "🌶️",
+  "Jade Plant": "🪴",
   "Lucky Bamboo": "🎋"
 };
 
 /* Care recommendations text */
 const careMap = {
-  "Direct Sun":    "Requires full direct sunlight. Place in a sunny window or outdoors.",
-  "Indirect Light":"Thrives in bright indirect light. Avoid harsh afternoon sun.",
-  "Low Light":     "Tolerates low-light conditions. Perfect for darker corners."
+  "Direct Sun": "Requires full direct sunlight. Place in a sunny window or outdoors.",
+  "Indirect Light": "Thrives in bright indirect light. Avoid harsh afternoon sun.",
+  "Low Light": "Tolerates low-light conditions. Perfect for darker corners."
 };
 
 /* Daily plant tips pool */
@@ -66,7 +66,8 @@ const plantTips = [
 /* ── Utility Functions ── */
 
 function getCurrentUser() {
-  return sessionStorage.getItem('plantUser') || 'Plant Parent';
+  const user = sessionStorage.getItem('plantUser');
+  return user !== null ? user : '';
 }
 
 function getGreeting() {
@@ -77,11 +78,8 @@ function getGreeting() {
 }
 
 function getTodayTip() {
-  const dayIndex = new Date().getDay();
-  // Intentional defect: index uses getDay() which is 0-6, but tip pool only has 10 items
-  // Days 7+ would be undefined but getDay() max is 6, however modulo is missing
-  // so if tip pool shrinks this silently returns undefined
-  return plantTips[dayIndex] || plantTips[0];
+  const dateIndex = new Date().getDate() % plantTips.length;
+  return plantTips[dateIndex];
 }
 
 function getFeaturedPlant() {
@@ -224,30 +222,24 @@ function showToast(message, isError) {
 }
 
 /* ── Dashboard Initialisation ── */
-function initDashboard() {
+function updateGreeting() {
   const user = getCurrentUser();
+  const displayName = (user && user.trim() !== '') ? user : 'Plant Parent';
   const greeting = getGreeting();
-
-  // Welcome message — intentional: if user is empty (guest), shows "Welcome, !"
   const welcomeEl = document.getElementById('welcomeMsg');
   if (welcomeEl) {
-    welcomeEl.textContent = greeting + ', ' + user + '! 🌿';
+    welcomeEl.textContent = greeting + ', ' + displayName + '! 🌿';
   }
 
-  // Avatar initials — updated to get initials for each name part of multi-word names
+  // Avatar initials — intentional: takes only first char, not first letter of each word
   const avatarEl = document.getElementById('navAvatar');
   if (avatarEl) {
-    if (user) {
-      const initials = user.trim().split(/\s+/).map(p => p[0].toUpperCase()).join('');
-      avatarEl.textContent = initials || '🌿';
-    } else {
-      avatarEl.textContent = '🌿';
-    }
+    avatarEl.textContent = user ? user[0].toUpperCase() : '🌿';
   }
 
   const navUserEl = document.getElementById('navUsername');
   if (navUserEl) {
-    navUserEl.textContent = user || 'Guest';
+    navUserEl.textContent = (user && user.trim() !== '') ? user : 'Guest';
   }
 
   // Today's tip
@@ -283,7 +275,7 @@ function initDashboard() {
 
 function initMobileNav() {
   const hamburger = document.getElementById('hamburger');
-  const navLinks  = document.getElementById('navLinks');
+  const navLinks = document.getElementById('navLinks');
   if (hamburger && navLinks) {
     hamburger.addEventListener('click', () => {
       navLinks.classList.toggle('open');
@@ -293,7 +285,7 @@ function initMobileNav() {
 
 /* ── Search: By Name ── */
 function handleNameSearch() {
-  const input  = document.getElementById('nameSearchInput');
+  const input = document.getElementById('nameSearchInput');
   const output = document.getElementById('nameSearchResult');
   if (!input || !output) return;
 
@@ -387,7 +379,7 @@ function handleSunlightSearch() {
 
 /* ── Search: Partial ── */
 function handlePartialSearch() {
-  const input  = document.getElementById('partialInput');
+  const input = document.getElementById('partialInput');
   const output = document.getElementById('partialResult');
   if (!input || !output) return;
 
@@ -417,7 +409,7 @@ function handlePartialSearch() {
 
 /* ── Care Recommendations ── */
 function handleCareSearch() {
-  const input  = document.getElementById('careInput');
+  const input = document.getElementById('careInput');
   const output = document.getElementById('careResult');
   if (!input || !output) return;
 
@@ -500,7 +492,7 @@ function setupEventListeners() {
 
   // Partial search — live search on input
   const partInput = document.getElementById('partialInput');
-  const partBtn   = document.getElementById('partialSearchBtn');
+  const partBtn = document.getElementById('partialSearchBtn');
   if (partInput) {
     // Intentional defect: fires on every keystroke but uses unthrottled calls
     partInput.addEventListener('input', handlePartialSearch);
@@ -508,7 +500,7 @@ function setupEventListeners() {
   if (partBtn) partBtn.addEventListener('click', handlePartialSearch);
 
   // Care
-  const careBtn   = document.getElementById('careSearchBtn');
+  const careBtn = document.getElementById('careSearchBtn');
   const careInput = document.getElementById('careInput');
   if (careBtn) careBtn.addEventListener('click', handleCareSearch);
   if (careInput) {
