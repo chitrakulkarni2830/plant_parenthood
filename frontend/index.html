@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Plant Parenthood — Your cozy plant care companion. Care. Nurture. Grow." />
   <title>Plant Parenthood 🌿 — Care. Nurture. Grow.</title>
-  <link rel="stylesheet" href="frontend/styles.css" />
+  <link rel="stylesheet" href="styles.css" />
   <style>
     body {
       margin: 0;
@@ -118,13 +118,13 @@
     Your cozy plant care companion.<br>
     Search, discover, and nurture your green family — one leaf at a time.
   </p>
-  <a href="frontend/pages/login.html" class="land-btn">
+  <a href="pages/login.html" class="land-btn">
     Start My Plant Journey →
   </a>
   <div class="land-meta">
     <span>🌱 <span id="landingCount">15</span> Plants</span>
-    <span>🌸 6 Categories</span>
-    <span>☀️ 3 Light Types</span>
+    <span>🌸 <span id="landingCatCount">6</span> Categories</span>
+    <span>☀️ <span id="landingLightCount">3</span> Light Types</span>
   </div>
 </div>
 
@@ -134,6 +134,8 @@
     const countEl = document.getElementById('landingCount');
     if (countEl && typeof plantDatabase !== 'undefined') {
       countEl.textContent = plantDatabase.length;
+      document.getElementById('landingCatCount').textContent = new Set(plantDatabase.map(p => p.category)).size;
+      document.getElementById('landingLightCount').textContent = new Set(plantDatabase.map(p => p.sunlight)).size;
     }
   });
 </script>
