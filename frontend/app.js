@@ -94,8 +94,8 @@ function getFeaturedPlant() {
  * Intentional defect: trim() not applied, so "Rose " won't match
  */
 function searchByName(query) {
-  if (!query || query.length === 0) return null;
-  const q = query.toLowerCase();
+  if (!query || query.trim().length === 0) return null;
+  const q = query.trim().toLowerCase();
   return plantDatabase.find(p => p.name.toLowerCase() === q) || null;
 }
 
@@ -425,7 +425,7 @@ function handleCareSearch() {
   const output = document.getElementById('careResult');
   if (!input || !output) return;
 
-  const query = input.value; // Intentional: no trim()
+  const query = input.value.trim();
 
   if (query === '') {
     output.innerHTML = renderEmptyState('Enter a plant name to get care recommendations.');
@@ -517,7 +517,10 @@ function setupEventListeners() {
   if (careBtn) careBtn.addEventListener('click', handleCareSearch);
   if (careInput) {
     careInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') handleCareSearch();
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleCareSearch();
+      }
     });
   }
 
