@@ -513,7 +513,7 @@
       </div>
 
       <!-- Heading -->
-      <h2 class="form-welcome">Welcome back 🌱</h2>
+      <h2 class="form-welcome">Welcome 🌱</h2>
       <p class="form-sub">Tell us your name to begin your plant journey.</p>
 
       <!-- Form -->
@@ -602,14 +602,17 @@
   const guestLink      = document.getElementById('guestLink');
 
   // Live character counter
-  nameInput.addEventListener('input', () => {
+  const updateCounter = () => {
     const len = nameInput.value.length;
     charCount.textContent = len + ' / 60';
 
     if (nameInput.value.trim().length > 0) {
       nameError.classList.remove('show');
+    } else {
+      nameError.classList.add('show');
     }
-  });
+  };
+  ['input', 'paste', 'change', 'keyup'].forEach(e => nameInput.addEventListener(e, updateCounter));
 
   // Form submit
   form.addEventListener('submit', (e) => {
@@ -617,15 +620,15 @@
     const raw = nameInput.value;
     const name = raw.trim();
 
-    // Validation — intentional: spaces-only name passes if length > 0 but trim is empty
-    if (raw.length === 0) {
+    // Validation
+    if (name.length === 0) {
       nameError.classList.add('show');
       nameInput.focus();
       return;
     }
 
-    // Store user name (intentional: stores raw value with possible leading/trailing spaces)
-    sessionStorage.setItem('plantUser', raw);
+    // Store user name
+    sessionStorage.setItem('plantUser', name);
 
     // Show success
     successMsg.textContent = 'Welcome, ' + name + '! 🌿';
@@ -640,14 +643,13 @@
   // Guest link
   guestLink.addEventListener('click', (e) => {
     e.preventDefault();
-    // Intentional: guest gets stored as empty string, but welcome still shows
-    sessionStorage.setItem('plantUser', '');
+    // Guest login
+    sessionStorage.setItem('plantUser', 'Guest');
     window.location.href = '../pages/dashboard.html';
   });
 
   // If already logged in, redirect
-  if (sessionStorage.getItem('plantUser') !== null && sessionStorage.getItem('plantUser') !== '') {
-    // Intentional: redirect fires even if user name is whitespace
+  if (sessionStorage.getItem('plantUser') !== null && sessionStorage.getItem('plantUser').trim() !== '') {
     window.location.href = '../pages/dashboard.html';
   }
 </script>
