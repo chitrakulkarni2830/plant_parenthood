@@ -589,7 +589,7 @@ function setupEventListeners() {
         target.setAttribute('tabindex', '-1');
         target.focus();
       }
-    };
+    })
 
     el.addEventListener('click', scrollAction);
 
