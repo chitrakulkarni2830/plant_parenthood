@@ -581,7 +581,17 @@ function setupEventListeners() {
 
   // Quick action cards — scroll to section (keyboard accessible)
   document.querySelectorAll('[data-scroll-to]').forEach(el => {
-    el.addEventListener('click', () => {
+    const scrollAction = () => {
+      // Reset all search fields (PP-55)
+      ['nameSearchInput', 'partialInput', 'careInput'].forEach(id => {
+         const inputEl = document.getElementById(id);
+         if(inputEl) { inputEl.value = ''; inputEl.dispatchEvent(new Event('input')); }
+      });
+      ['categorySelect', 'sunlightSelect'].forEach(id => {
+         const selEl = document.getElementById(id);
+         if(selEl) { selEl.selectedIndex = 0; selEl.dispatchEvent(new Event('change')); }
+      });
+
       const targetId = el.getAttribute('data-scroll-to');
       const target = document.getElementById(targetId);
       if (target) {
@@ -589,7 +599,7 @@ function setupEventListeners() {
         target.setAttribute('tabindex', '-1');
         target.focus();
       }
-    })
+    };
 
     el.addEventListener('click', scrollAction);
 
