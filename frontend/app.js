@@ -96,8 +96,8 @@ function getFeaturedPlant() {
  * Intentional defect: trim() not applied, so "Rose " won't match
  */
 function searchByName(query) {
-  if (!query || query.length === 0) return null;
-  const q = query.toLowerCase();
+  if (!query || query.trim().length === 0) return null;
+  const q = query.trim().toLowerCase();
   return plantDatabase.find(p => p.name.toLowerCase() === q) || null;
 }
 
@@ -110,7 +110,10 @@ function searchByName(query) {
 function searchByCategory(category) {
   if (!category || category.trim() === '') return [];
   const q = category.trim().toLowerCase();
-  return plantDatabase.filter(p => p.category.toLowerCase() === q);
+  return plantDatabase.filter(p => {
+    const cat = p.category.toLowerCase();
+    return cat === q || cat + 's' === q || cat === q + 's';
+  });
 }
 
 /**
@@ -120,7 +123,8 @@ function searchByCategory(category) {
  */
 function searchBySunlight(sunlight) {
   if (!sunlight || sunlight.trim() === '') return [];
-  return plantDatabase.filter(p => p.sunlight === sunlight);
+  const s = sunlight.trim().toLowerCase();
+  return plantDatabase.filter(p => p.sunlight.toLowerCase() === s);
 }
 
 /**
@@ -131,10 +135,14 @@ function searchBySunlight(sunlight) {
  * - "money" matches "Money Plant" but "plants" doesn't return indoor plants
  */
 function partialSearch(query) {
-  if (!query || query.length === 0) return [];
-  const q = query.toLowerCase();
-  // Intentional: space-only queries still return all plants starting with ' '
-  return plantDatabase.filter(p => p.name.toLowerCase().includes(q));
+  if (!query || query.trim().length === 0) return [];
+  const q = query.trim().toLowerCase();
+  return plantDatabase.filter(p => 
+    p.name.toLowerCase().includes(q) || 
+    p.category.toLowerCase().includes(q) || 
+    p.sunlight.toLowerCase().includes(q) || 
+    (careMap[p.sunlight] && careMap[p.sunlight].toLowerCase().includes(q))
+  );
 }
 
 /**
@@ -290,10 +298,11 @@ function handleNameSearch() {
   const output = document.getElementById('nameSearchResult');
   if (!input || !output) return;
 
-  const query = input.value; // Intentional: no trim()
+  const query = input.value.trim(); 
 
   if (query === '') {
     output.innerHTML = renderEmptyState('Enter a plant name above to search.');
+    input.focus();
     return;
   }
 
@@ -317,7 +326,7 @@ function handleNameSearch() {
       </div>
     `;
   } else {
-    output.innerHTML = renderEmptyState('🌿 No plant named "' + query + '" found. Check the spelling?');
+    output.innerHTML = renderEmptyState('No results found for "' + query + '".');
   }
 }
 
@@ -345,7 +354,7 @@ function handleCategorySearch() {
       ${results.map(p => renderPlantCard(p)).join('')}
     `;
   } else {
-    output.innerHTML = renderEmptyState('No plants found in this category.');
+    output.innerHTML = renderEmptyState('No results found.');
   }
 }
 
@@ -374,7 +383,7 @@ function handleSunlightSearch() {
       ${results.map(p => renderPlantCard(p)).join('')}
     `;
   } else {
-    output.innerHTML = renderEmptyState('No plants match this sunlight requirement.');
+    output.innerHTML = renderEmptyState('No results found.');
   }
 }
 
@@ -384,10 +393,11 @@ function handlePartialSearch() {
   const output = document.getElementById('partialResult');
   if (!input || !output) return;
 
-  const query = input.value;
+  const query = input.value.trim();
 
   if (query.length === 0) {
     output.innerHTML = renderEmptyState('Start typing to search across all plant names.');
+    input.focus();
     return;
   }
 
@@ -404,7 +414,7 @@ function handlePartialSearch() {
       ${results.map(p => renderPlantCard(p)).join('')}
     `;
   } else {
-    output.innerHTML = renderEmptyState('No matching plants. Try a shorter search term.');
+    output.innerHTML = renderEmptyState('No results found.');
   }
 }
 
@@ -414,10 +424,11 @@ function handleCareSearch() {
   const output = document.getElementById('careResult');
   if (!input || !output) return;
 
-  const query = input.value; // Intentional: no trim()
+  const query = input.value.trim(); 
 
   if (query === '') {
     output.innerHTML = renderEmptyState('Enter a plant name to get care recommendations.');
+    input.focus();
     return;
   }
 
@@ -472,9 +483,8 @@ function setupEventListeners() {
   const nameInput = document.getElementById('nameSearchInput');
   if (nameBtn) nameBtn.addEventListener('click', handleNameSearch);
   if (nameInput) {
-    nameInput.addEventListener('keydown', (e) => {
-      // Intentional defect: uses 'keydown' not 'keyup', fires before value updated
-      // so pressing Enter at exactly right moment submits the previous value
+    nameInput.addEventListener('input', (e) => { if(e.target.value.trim() === '') handleNameSearch(); });
+    nameInput.addEventListener('keyup', (e) => {
       if (e.key === 'Enter') handleNameSearch();
     });
   }
@@ -482,8 +492,6 @@ function setupEventListeners() {
   // Category search
   const catSelect = document.getElementById('categorySelect');
   if (catSelect) {
-    // Intentional defect: 'change' fires only on change, not on initial load
-    // so the default placeholder option shows no result
     catSelect.addEventListener('change', handleCategorySearch);
   }
 
@@ -495,8 +503,17 @@ function setupEventListeners() {
   const partInput = document.getElementById('partialInput');
   const partBtn   = document.getElementById('partialSearchBtn');
   if (partInput) {
-    // Intentional defect: fires on every keystroke but uses unthrottled calls
-    partInput.addEventListener('input', handlePartialSearch);
+    partInput.addEventListener('input', (e) => {
+      if(e.target.value.trim() === '') {
+        const output = document.getElementById('partialResult');
+        if(output) output.innerHTML = renderEmptyState('Start typing to search across all plant names.');
+      } else {
+        handlePartialSearch();
+      }
+    });
+    partInput.addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') handlePartialSearch();
+    });
   }
   if (partBtn) partBtn.addEventListener('click', handlePartialSearch);
 
@@ -505,7 +522,8 @@ function setupEventListeners() {
   const careInput = document.getElementById('careInput');
   if (careBtn) careBtn.addEventListener('click', handleCareSearch);
   if (careInput) {
-    careInput.addEventListener('keydown', (e) => {
+    careInput.addEventListener('input', (e) => { if(e.target.value.trim() === '') handleCareSearch(); });
+    careInput.addEventListener('keyup', (e) => {
       if (e.key === 'Enter') handleCareSearch();
     });
   }
@@ -535,6 +553,16 @@ function setupEventListeners() {
   // Quick action cards — scroll to section
   document.querySelectorAll('[data-scroll-to]').forEach(el => {
     el.addEventListener('click', () => {
+      // Reset all search fields (PP-55)
+      ['nameSearchInput', 'partialInput', 'careInput'].forEach(id => {
+         const inputEl = document.getElementById(id);
+         if(inputEl) { inputEl.value = ''; inputEl.dispatchEvent(new Event('input')); }
+      });
+      ['categorySelect', 'sunlightSelect'].forEach(id => {
+         const selEl = document.getElementById(id);
+         if(selEl) { selEl.selectedIndex = 0; selEl.dispatchEvent(new Event('change')); }
+      });
+
       const targetId = el.getAttribute('data-scroll-to');
       const target = document.getElementById(targetId);
       if (target) {
