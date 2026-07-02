@@ -239,10 +239,15 @@ function updateGreeting() {
     welcomeEl.textContent = greeting + ', ' + displayName + '! 🌿';
   }
 
-  // Avatar initials — intentional: takes only first char, not first letter of each word
+  // Avatar initials — updated to get initials for each name part of multi-word names
   const avatarEl = document.getElementById('navAvatar');
   if (avatarEl) {
-    avatarEl.textContent = user ? user[0].toUpperCase() : '🌿';
+    if (user && user.trim() !== '') {
+      const initials = user.trim().split(/\s+/).map(p => p[0].toUpperCase()).join('');
+      avatarEl.textContent = initials || '🌿';
+    } else {
+      avatarEl.textContent = '🌿';
+    }
   }
 
   const navUserEl = document.getElementById('navUsername');
